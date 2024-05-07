@@ -1,0 +1,28 @@
+-- This query has been migrated to run on DuneSQL.
+-- If you need to change back because you’re seeing issues, use the Query History view to restore the previous version.
+-- If you notice a regression, please email dunesql-feedback@dune.com.
+
+SELECT
+  DATE_TRUNC('{{Floor Time Interval}}', block_time) AS "Time Interval",
+  SUM(amount_original) AS "Volume Ξ",
+  APPROX_PERCENTILE(amount_original, 0.1) AS "Floor Price Ξ"
+FROM
+  nft.trades AS nftt
+WHERE
+  nftt.blockchain = 'ethereum'
+  AND nftt."currency_symbol" IN ('ETH', 'WETH')
+  AND number_of_items = 1
+  AND project <> 'LooksRare'
+  AND amount_original > 0.01
+  AND NOT tx_hash IN (
+    0x92488a00dfa0746c300c66a716e6cc11ba9c0f9d40d8c58e792cc7fcebf432d0,
+    0x0831db6af74c935724b82d72f0ccd269bf428004ff3da2b3d90c310ebe886af0,
+    0xe1ae8d3d31303f4007ab3e7aa99ede8f5878b4e0db7377a3504114469ccf1c83,
+    0x4d69387041e0cef473b2b6bbbedadb025a7ec67d08b115b784a6517a0a976739
+  )
+  AND nft_contract_address = {{Enter NFT Contract Address}}
+  AND block_time > CAST('{{Start Date}}' AS TIMESTAMP)
+GROUP BY
+  1
+ORDER BY
+  "Time Interval"
